@@ -59,27 +59,31 @@ class GameManagerView: View, View.OnTouchListener {
 
     fun start() {
         isInMotion = true
-//        move()
+        move()
     }
 
     fun stop() {
         isInMotion = false
     }
 
-//    private fun move() {
-//        circle.setY(circle.getY() + 1f)
-//        invalidate()
-//        resetOnOutOfBounds()
-//        if (isInMotion) {
-//            this.post{move()}
-//        }
-//    }
-//
-//    private fun resetOnOutOfBounds() {
-//        if (yIsOutOfBounds()) circle.setY(0f - circle.getRadius())
-//    }
-//
-//    private fun yIsOutOfBounds(): Boolean {
-//        return circle.getY() > screenSize.y
-//    }
+    private fun move() {
+        for (circle in circleStack) {
+            circle.setY(circle.getY() + 1f)
+        }
+        invalidate()
+        resetOnOutOfBounds()
+        if (isInMotion) {
+            this.post{move()}
+        }
+    }
+
+    private fun resetOnOutOfBounds() {
+        for (circle in circleStack) {
+            if (yIsOutOfBounds(circle)) circle.setY(0f - circle.getRadius())
+        }
+    }
+
+    private fun yIsOutOfBounds(circle: Circle): Boolean {
+        return circle.getY() > screenSize.y
+    }
 }

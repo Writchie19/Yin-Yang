@@ -4,7 +4,6 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(){
@@ -18,7 +17,6 @@ class MainActivity : AppCompatActivity(){
     }
 
     private fun onClick(button: Button) {
-        // Toast.makeText(this, "press", Toast.LENGTH_SHORT).show()
         when(button.text) {
             "Start" -> {game_manager.start(); button.text = "Stop"}
             "Stop" -> {game_manager.stop(); button.text = "Start"}
