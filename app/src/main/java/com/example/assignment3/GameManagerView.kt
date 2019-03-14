@@ -14,6 +14,8 @@ class GameManagerView: View, View.OnTouchListener {
     private val circleStack:Stack<Circle>
     private var isInMotion = false
     private val screenSize: Point
+    private lateinit var playerCircle: Circle
+    private var playerInMotion = false
 
     constructor(context: Context): super(context) {
         setOnTouchListener(this)
@@ -25,7 +27,7 @@ class GameManagerView: View, View.OnTouchListener {
     }
 
     init {
-        black.color = Color.BLACK
+        black.color = Color.WHITE
         circleStack = Stack()
         screenSize = Point()
     }
@@ -34,13 +36,19 @@ class GameManagerView: View, View.OnTouchListener {
         return screenSize
     }
 
+    fun initializePlayer(){
+        playerCircle = Circle(screenSize.x * 0.50f, screenSize.y * 0.5f, 30f, black)
+        invalidate()
+    }
+
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        canvas?.drawColor(Color.RED)
+        //canvas?.drawColor(Color.RED)
 
         for (circle in circleStack) {
             circle.drawOn(canvas)
         }
+        playerCircle.drawOn(canvas)
     }
 
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
@@ -48,27 +56,47 @@ class GameManagerView: View, View.OnTouchListener {
         val actionCode = action?.and(MotionEvent.ACTION_MASK)
 
         if (actionCode == MotionEvent.ACTION_DOWN) {
-            circleStack.push(Circle(event.x, event.y, 0f, black))
-            circleStack.peek().grow(this)
+            if (!isInMotion){
+                circleStack.push(Circle(event.x, event.y, 0f, black))
+                circleStack.peek().grow(this)
+            }
+            else{
+                if (playerInMotion) {
+                    if (event.x > screenSize.x / 2) {
+                        playerCircle.moveX(true,this)
+                    }
+                    else {
+                        playerCircle.moveX(false, this)
+                    }
+                }
+            }
         }
         else if (actionCode == MotionEvent.ACTION_UP) {
-            circleStack.peek().stopGrowing()
+            if(!isInMotion){
+                circleStack.peek().stopGrowing()
+            }
+            else {
+                playerCircle.stopMovingX()
+            }
         }
+        // action cancel is the bug
         return true
     }
 
     fun start() {
         isInMotion = true
+        playerInMotion = true
         move()
     }
 
     fun stop() {
         isInMotion = false
+        playerInMotion = false
     }
 
     private fun move() {
         for (circle in circleStack) {
-            circle.setY(circle.getY() + 1f)
+            circle.setY(circle.getY() + 5f)
         }
         invalidate()
         resetOnOutOfBounds()

@@ -14,6 +14,7 @@ class MainActivity : AppCompatActivity(){
         button1.setOnClickListener{onClick(button1)}
         val display = windowManager.defaultDisplay
         display.getSize(game_manager.getScreenSize())
+        game_manager.initializePlayer()
     }
 
     private fun onClick(button: Button) {

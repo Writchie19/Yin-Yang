@@ -44,4 +44,19 @@ class Circle(private var startX: Float, private var startY: Float, private var r
         task.cancel(true)
         scheduler.shutdown()
     }
+
+    fun moveX(moveRight: Boolean, view: View) {
+        scheduler = Executors.newScheduledThreadPool(1)
+        if (moveRight) {
+            task = scheduler.scheduleAtFixedRate({ startX+=2; view.invalidate() }, 0, 5, TimeUnit.MILLISECONDS)
+        }
+        else {
+            task = scheduler.scheduleAtFixedRate({ startX-=2; view.invalidate() }, 0, 5, TimeUnit.MILLISECONDS)
+        }
+    }
+
+    fun stopMovingX() {
+        task.cancel(true)
+        scheduler.shutdown()
+    }
 }
