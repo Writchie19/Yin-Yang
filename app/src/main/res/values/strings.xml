@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">Assignment3</string>
     <string name="start">Start</string>
-    <string name="score">Score</string>
+    <string name="score">Score:</string>
+    <string name="lives">Lives:</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="newbutton">New</string>
+    <string name="end">End</string>
 </resources>

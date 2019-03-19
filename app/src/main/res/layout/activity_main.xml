@@ -23,25 +23,35 @@
             android:layout_marginStart="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
-            android:gravity="center">
+            android:gravity="center" android:background="@android:color/black">
         <TextView
                 android:text="@string/score"
-                android:layout_width="9dp"
-                android:layout_height="wrap_content" android:id="@+id/score_view" android:layout_weight="1"
-                android:layout_marginLeft="20dp" android:layout_marginRight="20dp"/>
-        <Button
-                android:text="@string/start"
-                android:layout_width="107dp"
-                android:layout_height="match_parent"
-                android:id="@+id/button1" app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" android:background="@android:color/darker_gray"
-                app:layout_constraintHorizontal_bias="0.498"
-        />
-        <TextView
-                android:text="TextView"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:id="@+id/textView3" android:layout_weight="1"
-                android:layout_marginLeft="20dp" android:layout_marginRight="20dp"/>
+                android:layout_height="match_parent" android:id="@+id/score_view" android:layout_weight="1"
+                android:layout_marginLeft="5dp" android:layout_marginRight="5dp"
+                android:background="@android:color/holo_red_dark" android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp" android:textSize="24sp"
+                android:textColor="@android:color/black"/>
+        <Button
+                android:text="@string/pause"
+                android:layout_width="50dp"
+                android:layout_height="match_parent"
+                android:id="@+id/resume_button"
+                android:background="@android:color/white"
+                android:layout_weight="1" android:layout_marginBottom="5dp" android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp" android:layout_marginTop="5dp"/>
+        <Button
+                android:text="@string/newbutton"
+                android:layout_width="50dp"
+                android:layout_height="match_parent" android:id="@+id/new_button" android:layout_weight="1"
+                android:background="@android:color/white" android:layout_marginBottom="5dp"
+                android:layout_marginTop="5dp" android:layout_marginLeft="5dp" android:layout_marginRight="5dp"/>
+        <TextView
+                android:text="@string/lives"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" android:id="@+id/lives_view" android:layout_weight="1"
+                android:background="@android:color/holo_red_dark" android:layout_marginBottom="5dp"
+                android:layout_marginLeft="5dp" android:layout_marginRight="5dp" android:layout_marginTop="5dp"
+                android:textColor="@android:color/black" android:textSize="24sp"/>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

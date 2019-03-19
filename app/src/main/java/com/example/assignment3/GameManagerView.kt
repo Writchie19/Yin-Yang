@@ -6,22 +6,36 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Point
 import android.util.AttributeSet
-import android.util.Log
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Toast
 import java.util.*
 import kotlin.math.pow
 import kotlin.math.sqrt
 
+interface ScoreListener {
+    fun updateScore(score: Int)
+}
+
+interface LivesListener {
+    fun updateLives(lives: Int)
+}
+
 class GameManagerView: View, View.OnTouchListener {
+    private lateinit var playerCircle: Player
+    private lateinit var sListener: ScoreListener
+    private lateinit var lifeListener: LivesListener
     private val circleStack:Stack<Circle>
     private var isInMotion = false
     private val screenSize: Point
-    private lateinit var playerCircle: Player
     private var playerInMotion = false
     private var playerIsCreated = false
     private var furthestCircle: Circle
-    private var circleSpeed = 5f
+    private var circleSpeed = 2f
+    private var score = 0
+    private var lives = 3
+
 
     enum class Direction {
         LEFT, RIGHT, CENTER
@@ -65,7 +79,7 @@ class GameManagerView: View, View.OnTouchListener {
         val action = event?.action
         val actionCode = action?.and(MotionEvent.ACTION_MASK)
 
-        if (actionCode == MotionEvent.ACTION_DOWN || actionCode == MotionEvent.ACTION_MOVE && event?.pointerCount == 1) {
+        if (actionCode == MotionEvent.ACTION_DOWN || actionCode == MotionEvent.ACTION_MOVE && event.pointerCount == 1) {
             if (actionCode == MotionEvent.ACTION_DOWN) {
                 if (!isInMotion){
                     circleStack.push(Circle(event.x, event.y, 0f, white))
@@ -98,6 +112,26 @@ class GameManagerView: View, View.OnTouchListener {
         return true
     }
 
+    fun setScoreListener(listener: ScoreListener) {
+        sListener = listener
+    }
+
+    fun setLivesListener(listener: LivesListener) {
+        lifeListener = listener
+    }
+
+    fun reset() {
+        circleStack.clear()
+        lives = 3
+        score = 0
+        lifeListener.updateLives(lives)
+        sListener.updateScore(score)
+        playerCircle.setX(screenSize.x * 0.50f)
+        playerCircle.setY(screenSize.y * 0.75f)
+        circleSpeed = 2f
+        invalidate()
+    }
+
     fun start() {
         isInMotion = true
         playerInMotion = true
@@ -109,29 +143,25 @@ class GameManagerView: View, View.OnTouchListener {
         playerInMotion = false
     }
 
-    var count = 0
-    lateinit var sListen: ScoreListener
-
-    interface ScoreListener {
-        fun updateScore(score: Int)
-    }
-
-    fun setScoreListener(event: ScoreListener) {
-        sListen = event
-    }
-
     private fun move() {
         when(leftRightCenter) {
             Direction.LEFT -> playerCircle.decrementX(5f)
             Direction.RIGHT -> playerCircle.incrementX(5f)
             Direction.CENTER -> {}//Do nothing?
         }
+
         for (circle in circleStack) {
             circle.incrementY(circleSpeed)
             if (collision(circle)) {
                 if (playerCircle.collide(circle)) {
-                    count++
-                    sListen.updateScore(count)
+                    lives--
+                    lifeListener.updateLives(lives)
+                    if (0 == lives) {
+                        stop()
+                        val toast = Toast.makeText(context, "GAME OVER!", Toast.LENGTH_LONG)
+                        toast.setGravity(Gravity.CENTER_VERTICAL, 0,5)
+                        toast.show()
+                    }
                 }
             }
         }
@@ -153,6 +183,8 @@ class GameManagerView: View, View.OnTouchListener {
         for (circle in circleStack) {
             if (yIsOutOfBounds(circle)) {
                 circle.setY(0f - circle.getRadius())
+                score++
+                sListener.updateScore(score)
                 if (!playerCircle.collide(circle)){
                     playerCircle.resetCollision(circle)
                 }
