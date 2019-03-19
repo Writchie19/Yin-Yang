@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Point
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import java.util.*
@@ -14,8 +15,15 @@ class GameManagerView: View, View.OnTouchListener {
     private val circleStack:Stack<Circle>
     private var isInMotion = false
     private val screenSize: Point
-    private lateinit var playerCircle: Circle
+    private lateinit var playerCircle: Player
     private var playerInMotion = false
+    private var playerIsCreated = false
+
+    enum class Direction {
+        LEFT, RIGHT, CENTER
+    }
+
+    var leftRightCenter: Direction = Direction.CENTER
 
     constructor(context: Context): super(context) {
         setOnTouchListener(this)
@@ -32,19 +40,13 @@ class GameManagerView: View, View.OnTouchListener {
         screenSize = Point()
     }
 
-    fun getScreenSize(): Point {
-        return screenSize
-    }
-
-    fun initializePlayer(){
-        playerCircle = Circle(screenSize.x * 0.50f, screenSize.y * 0.5f, 30f, black)
-        invalidate()
-    }
-
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        //canvas?.drawColor(Color.RED)
-
+        if (!playerIsCreated) {
+            screenSize.set(this.width, this.height)
+            playerCircle = Player(screenSize.x * 0.50f, screenSize.y * 0.75f, 30f, black)
+            playerIsCreated = true
+        }
         for (circle in circleStack) {
             circle.drawOn(canvas)
         }
@@ -55,31 +57,33 @@ class GameManagerView: View, View.OnTouchListener {
         val action = event?.action
         val actionCode = action?.and(MotionEvent.ACTION_MASK)
 
-        if (actionCode == MotionEvent.ACTION_DOWN) {
-            if (!isInMotion){
-                circleStack.push(Circle(event.x, event.y, 0f, black))
-                circleStack.peek().grow(this)
-            }
-            else{
-                if (playerInMotion) {
-                    if (event.x > screenSize.x / 2) {
-                        playerCircle.moveX(true,this)
-                    }
-                    else {
-                        playerCircle.moveX(false, this)
-                    }
+        if (actionCode == MotionEvent.ACTION_DOWN || actionCode == MotionEvent.ACTION_MOVE && event?.pointerCount == 1) {
+            if (actionCode == MotionEvent.ACTION_DOWN) {
+                if (!isInMotion){
+                    circleStack.push(Circle(event.x, event.y, 0f, black))
+                    circleStack.peek().grow(this)
                 }
             }
+
+            if (playerInMotion) {
+                if (event.x > screenSize.x / 2) {
+                    leftRightCenter = Direction.RIGHT
+                }
+                else {
+                    leftRightCenter = Direction.LEFT
+                }
+            }
+
         }
-        else if (actionCode == MotionEvent.ACTION_UP) {
+        else if (actionCode == MotionEvent.ACTION_UP || actionCode == MotionEvent.ACTION_CANCEL || actionCode == MotionEvent.ACTION_POINTER_DOWN) {
             if(!isInMotion){
                 circleStack.peek().stopGrowing()
             }
             else {
-                playerCircle.stopMovingX()
+                leftRightCenter = Direction.CENTER
             }
         }
-        // action cancel is the bug
+
         return true
     }
 
@@ -94,12 +98,22 @@ class GameManagerView: View, View.OnTouchListener {
         playerInMotion = false
     }
 
+    // Still need to implement check player bounds
+
+
     private fun move() {
         for (circle in circleStack) {
-            circle.setY(circle.getY() + 5f)
+            // Change to increment Y and X
+            circle.incrementY(5f)
+        }
+        when(leftRightCenter) {
+            Direction.LEFT -> playerCircle.decrementX(5f)
+            Direction.RIGHT -> playerCircle.incrementX(5f)
+            Direction.CENTER -> {}//Do nothing?
         }
         invalidate()
         resetOnOutOfBounds()
+        checkPlayerBounds()
         if (isInMotion) {
             this.post{move()}
         }
@@ -113,5 +127,17 @@ class GameManagerView: View, View.OnTouchListener {
 
     private fun yIsOutOfBounds(circle: Circle): Boolean {
         return circle.getY() > screenSize.y
+    }
+
+    private fun checkPlayerBounds() {
+        if (playerCircle.getX() <= 0) {
+            playerCircle.blockXDirection(Direction.LEFT)
+        }
+        else if (playerCircle.getX() >= screenSize.x) {
+            playerCircle.blockXDirection(Direction.RIGHT)
+        }
+        else {
+            playerCircle.unblockXDirection()
+        }
     }
 }

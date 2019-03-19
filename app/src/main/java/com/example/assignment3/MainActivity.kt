@@ -12,15 +12,12 @@ class MainActivity : AppCompatActivity(){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         button1.setOnClickListener{onClick(button1)}
-        val display = windowManager.defaultDisplay
-        display.getSize(game_manager.getScreenSize())
-        game_manager.initializePlayer()
     }
 
     private fun onClick(button: Button) {
         when(button.text) {
-            "Start" -> {game_manager.start(); button.text = "Stop"}
-            "Stop" -> {game_manager.stop(); button.text = "Start"}
+            "Start" -> {game_manager.start(); button.text = "Stop"} //change this
+            "Stop" -> {game_manager.stop(); button.text = "Start"} // change this
         }
     }
 }
