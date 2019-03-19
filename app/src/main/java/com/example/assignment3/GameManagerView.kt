@@ -10,6 +10,8 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import java.util.*
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 class GameManagerView: View, View.OnTouchListener {
     private val circleStack:Stack<Circle>
@@ -98,19 +100,21 @@ class GameManagerView: View, View.OnTouchListener {
         playerInMotion = false
     }
 
-    // Still need to implement check player bounds
-
-
     private fun move() {
-        for (circle in circleStack) {
-            // Change to increment Y and X
-            circle.incrementY(5f)
-        }
         when(leftRightCenter) {
             Direction.LEFT -> playerCircle.decrementX(5f)
             Direction.RIGHT -> playerCircle.incrementX(5f)
             Direction.CENTER -> {}//Do nothing?
         }
+        for (circle in circleStack) {
+            circle.incrementY(5f)
+            if (collision(circle)) {
+                if (playerCircle.collide(circle)) {
+                    // Notify Main?
+                }
+            }
+        }
+
         invalidate()
         resetOnOutOfBounds()
         checkPlayerBounds()
@@ -119,14 +123,24 @@ class GameManagerView: View, View.OnTouchListener {
         }
     }
 
+    private fun collision(circle: Circle): Boolean {
+        val distance = sqrt((playerCircle.getX() - circle.getX()).pow(2) + (playerCircle.getY() - circle.getY()).pow(2))
+        return distance <= playerCircle.getRadius() + circle.getRadius()
+    }
+
     private fun resetOnOutOfBounds() {
         for (circle in circleStack) {
-            if (yIsOutOfBounds(circle)) circle.setY(0f - circle.getRadius())
+            if (yIsOutOfBounds(circle)) {
+                circle.setY(0f - circle.getRadius())
+                if (!playerCircle.collide(circle)){
+                    playerCircle.resetCollision()
+                }
+            }
         }
     }
 
     private fun yIsOutOfBounds(circle: Circle): Boolean {
-        return circle.getY() > screenSize.y
+        return circle.getY() > screenSize.y + circle.getRadius()
     }
 
     private fun checkPlayerBounds() {
