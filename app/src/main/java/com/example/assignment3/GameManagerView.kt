@@ -20,12 +20,14 @@ class GameManagerView: View, View.OnTouchListener {
     private lateinit var playerCircle: Player
     private var playerInMotion = false
     private var playerIsCreated = false
+    private var furthestCircle: Circle
+    private var circleSpeed = 5f
 
     enum class Direction {
         LEFT, RIGHT, CENTER
     }
 
-    var leftRightCenter: Direction = Direction.CENTER
+    private var leftRightCenter: Direction = Direction.CENTER
 
     constructor(context: Context): super(context) {
         setOnTouchListener(this)
@@ -34,18 +36,22 @@ class GameManagerView: View, View.OnTouchListener {
 
     companion object {
         val black: Paint = Paint()
+        val white: Paint = Paint()
     }
 
     init {
-        black.color = Color.WHITE
+        black.color = Color.BLACK
+        white.color = Color.WHITE
         circleStack = Stack()
         screenSize = Point()
+        furthestCircle = Circle(0f,0f,0f,white)
     }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         if (!playerIsCreated) {
             screenSize.set(this.width, this.height)
+            furthestCircle.setY(this.height.toFloat())
             playerCircle = Player(screenSize.x * 0.50f, screenSize.y * 0.75f, 30f, black)
             playerIsCreated = true
         }
@@ -62,8 +68,11 @@ class GameManagerView: View, View.OnTouchListener {
         if (actionCode == MotionEvent.ACTION_DOWN || actionCode == MotionEvent.ACTION_MOVE && event?.pointerCount == 1) {
             if (actionCode == MotionEvent.ACTION_DOWN) {
                 if (!isInMotion){
-                    circleStack.push(Circle(event.x, event.y, 0f, black))
+                    circleStack.push(Circle(event.x, event.y, 0f, white))
                     circleStack.peek().grow(this)
+                    if (event.y < furthestCircle.getY()) {
+                        furthestCircle = circleStack.peek()
+                    }
                 }
             }
 
@@ -100,6 +109,17 @@ class GameManagerView: View, View.OnTouchListener {
         playerInMotion = false
     }
 
+    var count = 0
+    lateinit var sListen: ScoreListener
+
+    interface ScoreListener {
+        fun updateScore(score: Int)
+    }
+
+    fun setScoreListener(event: ScoreListener) {
+        sListen = event
+    }
+
     private fun move() {
         when(leftRightCenter) {
             Direction.LEFT -> playerCircle.decrementX(5f)
@@ -107,10 +127,11 @@ class GameManagerView: View, View.OnTouchListener {
             Direction.CENTER -> {}//Do nothing?
         }
         for (circle in circleStack) {
-            circle.incrementY(5f)
+            circle.incrementY(circleSpeed)
             if (collision(circle)) {
                 if (playerCircle.collide(circle)) {
-                    // Notify Main?
+                    count++
+                    sListen.updateScore(count)
                 }
             }
         }
@@ -133,7 +154,11 @@ class GameManagerView: View, View.OnTouchListener {
             if (yIsOutOfBounds(circle)) {
                 circle.setY(0f - circle.getRadius())
                 if (!playerCircle.collide(circle)){
-                    playerCircle.resetCollision()
+                    playerCircle.resetCollision(circle)
+                }
+
+                if (circle == furthestCircle) {
+                    circleSpeed += circleSpeed * 0.25f
                 }
             }
         }

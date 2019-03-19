@@ -5,8 +5,7 @@ import android.graphics.Paint
 class Player(startX: Float, startY: Float, radius: Float = 5f, circleColor: Paint) : Circle(startX, startY,radius,circleColor) {
     private var blockXDecrement = false
     private var blockXIncrement = false
-    private var dummyCircle = Circle(0f,0f,0f,circleColor)
-    private var recentCollision = dummyCircle
+    private var recentCollisions = ArrayList<Circle>()
 
     override fun decrementX(amount: Float) {
         if (!blockXDecrement) {
@@ -33,14 +32,14 @@ class Player(startX: Float, startY: Float, radius: Float = 5f, circleColor: Pain
     }
 
     fun collide(circle: Circle): Boolean {
-        if (recentCollision != circle) {
-            recentCollision = circle
+        if (!recentCollisions.contains(circle)) {
+            recentCollisions.add(circle)
             return true
         }
         return false
     }
 
-    fun resetCollision() {
-        recentCollision = dummyCircle
+    fun resetCollision(circle: Circle) {
+        recentCollisions.remove(circle)
     }
 }
