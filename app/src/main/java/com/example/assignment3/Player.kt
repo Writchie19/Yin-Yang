@@ -39,6 +39,10 @@ class Player(startX: Float, startY: Float, radius: Float = 5f, circleColor: Pain
         return false
     }
 
+    fun hasCollided(circle: Circle): Boolean {
+        return recentCollisions.contains(circle)
+    }
+
     fun resetCollision(circle: Circle) {
         recentCollisions.remove(circle)
     }

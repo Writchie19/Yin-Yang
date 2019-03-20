@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Point
 import android.util.AttributeSet
+import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -19,13 +20,14 @@ interface ScoreListener {
 }
 
 interface LivesListener {
-    fun updateLives(lives: Int)
+    fun updateLives(lives: Int, gameState: GameState)
 }
 
 class GameManagerView: View, View.OnTouchListener {
     private lateinit var playerCircle: Player
     private lateinit var sListener: ScoreListener
     private lateinit var lifeListener: LivesListener
+    private lateinit var curGameState: GameState
     private val circleStack:Stack<Circle>
     private var isInMotion = false
     private val screenSize: Point
@@ -34,7 +36,9 @@ class GameManagerView: View, View.OnTouchListener {
     private var furthestCircle: Circle
     private var circleSpeed = 2f
     private var score = 0
+    private var scoreIncrementer = 1
     private var lives = 3
+    private var resetLength = 0f
 
 
     enum class Direction {
@@ -81,11 +85,13 @@ class GameManagerView: View, View.OnTouchListener {
 
         if (actionCode == MotionEvent.ACTION_DOWN || actionCode == MotionEvent.ACTION_MOVE && event.pointerCount == 1) {
             if (actionCode == MotionEvent.ACTION_DOWN) {
-                if (!isInMotion){
-                    circleStack.push(Circle(event.x, event.y, 0f, white))
-                    circleStack.peek().grow(this)
-                    if (event.y < furthestCircle.getY()) {
-                        furthestCircle = circleStack.peek()
+                if (curGameState == GameState.NewGame) {
+                    if (!isInMotion) {
+                        circleStack.push(Circle(event.x, event.y, 0f, white))
+                        circleStack.peek().grow(this)
+                        if (event.y < furthestCircle.getY()) {
+                            furthestCircle = circleStack.peek()
+                        }
                     }
                 }
             }
@@ -102,7 +108,12 @@ class GameManagerView: View, View.OnTouchListener {
         }
         else if (actionCode == MotionEvent.ACTION_UP || actionCode == MotionEvent.ACTION_CANCEL || actionCode == MotionEvent.ACTION_POINTER_DOWN) {
             if(!isInMotion){
-                circleStack.peek().stopGrowing()
+                if (curGameState == GameState.NewGame) {
+                    circleStack.peek().stopGrowing()
+                    if (circleStack.peek().getRadius() > resetLength) {
+                        resetLength = circleStack.peek().getRadius()
+                    }
+                }
             }
             else {
                 leftRightCenter = Direction.CENTER
@@ -120,14 +131,21 @@ class GameManagerView: View, View.OnTouchListener {
         lifeListener = listener
     }
 
+    fun updateGameState(gameState: GameState) {
+        curGameState = gameState
+    }
+
     fun reset() {
         circleStack.clear()
         lives = 3
         score = 0
-        lifeListener.updateLives(lives)
+        scoreIncrementer = 1
+        curGameState = GameState.NewGame
+        lifeListener.updateLives(lives, curGameState)
         sListener.updateScore(score)
         playerCircle.setX(screenSize.x * 0.50f)
         playerCircle.setY(screenSize.y * 0.75f)
+        leftRightCenter = Direction.CENTER
         circleSpeed = 2f
         invalidate()
     }
@@ -155,13 +173,14 @@ class GameManagerView: View, View.OnTouchListener {
             if (collision(circle)) {
                 if (playerCircle.collide(circle)) {
                     lives--
-                    lifeListener.updateLives(lives)
                     if (0 == lives) {
                         stop()
+                        curGameState = GameState.EndGame
                         val toast = Toast.makeText(context, "GAME OVER!", Toast.LENGTH_LONG)
                         toast.setGravity(Gravity.CENTER_VERTICAL, 0,5)
                         toast.show()
                     }
+                    lifeListener.updateLives(lives, curGameState)
                 }
             }
         }
@@ -182,22 +201,23 @@ class GameManagerView: View, View.OnTouchListener {
     private fun resetOnOutOfBounds() {
         for (circle in circleStack) {
             if (yIsOutOfBounds(circle)) {
-                circle.setY(0f - circle.getRadius())
-                score++
+                circle.setY(0f - resetLength)
+                score += scoreIncrementer
                 sListener.updateScore(score)
-                if (!playerCircle.collide(circle)){
+                if (playerCircle.hasCollided(circle)){
                     playerCircle.resetCollision(circle)
                 }
 
                 if (circle == furthestCircle) {
                     circleSpeed += circleSpeed * 0.25f
+                    scoreIncrementer++
                 }
             }
         }
     }
 
     private fun yIsOutOfBounds(circle: Circle): Boolean {
-        return circle.getY() > screenSize.y + circle.getRadius()
+        return circle.getY() > screenSize.y + resetLength
     }
 
     private fun checkPlayerBounds() {

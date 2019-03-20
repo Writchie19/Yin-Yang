@@ -5,12 +5,16 @@ import android.os.Bundle
 import android.widget.Button
 import kotlinx.android.synthetic.main.activity_main.*
 
+// Address bug: if player loses, can still resume, should be put into endgame state, and auto put end to new?
+
+enum class GameState {
+    NewGame, Running, EndGame
+}
+
 class MainActivity : AppCompatActivity(), ScoreListener, LivesListener{
 
-    enum class GameState {
-        NewGame, Running, EndGame
-    }
-    private var gameState = GameState.NewGame
+
+    private var gameState = GameState.EndGame
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,6 +23,7 @@ class MainActivity : AppCompatActivity(), ScoreListener, LivesListener{
         new_button.setOnClickListener{onNewClick(new_button)}
         game_manager.setScoreListener(this)
         game_manager.setLivesListener(this)
+        game_manager.updateGameState(gameState)
     }
 
     private fun onResumeClick(button: Button) {
@@ -54,13 +59,15 @@ class MainActivity : AppCompatActivity(), ScoreListener, LivesListener{
                 button.text = getString(R.string.newbutton)
             }
         }
+        game_manager.updateGameState(gameState)
     }
 
     override fun updateScore(score: Int) {
         score_view.text = String.format(getString(R.string.score) + "\n     " + score.toString())
     }
 
-    override fun updateLives(lives: Int) {
+    override fun updateLives(lives: Int, gameState: GameState) {
         lives_view.text = String.format(getString(R.string.lives) + "\n     " + lives.toString())
+        this.gameState = gameState
     }
 }
