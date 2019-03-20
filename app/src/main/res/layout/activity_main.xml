@@ -15,15 +15,13 @@
           android:layout_marginBottom="8dp" app:layout_constraintBottom_toTopOf="@+id/linearLayout"/>
     <LinearLayout
             android:orientation="horizontal"
-            android:layout_width="0dp"
             android:layout_height="89dp"
             android:id="@+id/linearLayout"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginEnd="8dp" app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginStart="8dp"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
-            android:gravity="center" android:background="@android:color/black">
+            android:gravity="center" android:background="@android:color/black" android:layout_width="0dp">
         <TextView
                 android:text="@string/score"
                 android:layout_width="wrap_content"
